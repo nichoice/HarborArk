@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"HarborArk/config"
-	"HarborArk/internal/controller"
 	"HarborArk/router"
 	"HarborArk/router/middleware"
 	"fmt"
@@ -58,6 +57,9 @@ func startServer() {
 		panic(fmt.Errorf("初始化日志失败: %v", err))
 	}
 
+	// 初始化数据库
+	config.ConnectDB()
+
 	// 自动更新 Swagger 文档
 	if swaggerConfig.AutoUpdate && swaggerConfig.Enabled {
 		AutoUpdateSwaggerDocs()
@@ -94,24 +96,6 @@ func startServer() {
 			"time":   "2025-01-21T11:00:00Z",
 		})
 	})
-
-	// API 路由组
-	v1 := r.Group("/api/v1")
-	{
-		v1.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "pong",
-			})
-		})
-
-		// 用户管理路由
-		users := v1.Group("/users")
-		{
-			users.GET("", controller.GetUsers)
-			users.GET("/:id", controller.GetUser)
-			users.POST("", controller.CreateUser)
-		}
-	}
 
 	// 启动服务器
 	port := ":" + serverConfig.Port
