@@ -28,6 +28,8 @@ func NewUserGroupController() *UserGroupController {
 // @Param group body CreateUserGroupRequest true "用户组信息"
 // @Success 200 {object} Response{data=model.UserGroup}
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /user-groups [post]
 func (c *UserGroupController) CreateUserGroup(ctx *gin.Context) {
 	var req CreateUserGroupRequest
@@ -65,7 +67,9 @@ func (c *UserGroupController) CreateUserGroup(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "用户组ID"
 // @Success 200 {object} Response{data=model.UserGroup}
+// @Failure 401 {object} Response
 // @Failure 404 {object} Response
+// @Security BearerAuth
 // @Router /user-groups/{id} [get]
 func (c *UserGroupController) GetUserGroup(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -104,6 +108,8 @@ func (c *UserGroupController) GetUserGroup(ctx *gin.Context) {
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(10)
 // @Success 200 {object} Response{data=PageResponse}
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /user-groups [get]
 func (c *UserGroupController) GetUserGroups(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
@@ -148,6 +154,8 @@ func (c *UserGroupController) GetUserGroups(ctx *gin.Context) {
 // @Param group body UpdateUserGroupRequest true "用户组信息"
 // @Success 200 {object} Response
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /user-groups/{id} [put]
 func (c *UserGroupController) UpdateUserGroup(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -206,6 +214,8 @@ func (c *UserGroupController) UpdateUserGroup(ctx *gin.Context) {
 // @Param id path int true "用户组ID"
 // @Success 200 {object} Response
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /user-groups/{id} [delete]
 func (c *UserGroupController) DeleteUserGroup(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)

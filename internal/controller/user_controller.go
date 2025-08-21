@@ -28,6 +28,8 @@ func NewUserController() *UserController {
 // @Param user body CreateUserRequest true "用户信息"
 // @Success 200 {object} Response{data=model.User}
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /users [post]
 func (c *UserController) CreateUser(ctx *gin.Context) {
 	var req CreateUserRequest
@@ -65,7 +67,9 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "用户ID"
 // @Success 200 {object} Response{data=model.User}
+// @Failure 401 {object} Response
 // @Failure 404 {object} Response
+// @Security BearerAuth
 // @Router /users/{id} [get]
 func (c *UserController) GetUser(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -104,6 +108,8 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(10)
 // @Success 200 {object} Response{data=PageResponse}
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /users [get]
 func (c *UserController) GetUsers(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
@@ -148,6 +154,8 @@ func (c *UserController) GetUsers(ctx *gin.Context) {
 // @Param user body UpdateUserRequest true "用户信息"
 // @Success 200 {object} Response
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /users/{id} [put]
 func (c *UserController) UpdateUser(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -206,6 +214,8 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 // @Param id path int true "用户ID"
 // @Success 200 {object} Response
 // @Failure 400 {object} Response
+// @Failure 401 {object} Response
+// @Security BearerAuth
 // @Router /users/{id} [delete]
 func (c *UserController) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)

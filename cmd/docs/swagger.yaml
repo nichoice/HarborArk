@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   controller.CreateUserGroupRequest:
     properties:
@@ -129,8 +130,19 @@ definitions:
           $ref: '#/definitions/model.User'
         type: array
     type: object
+host: localhost:8080
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: HarborArk 项目 API 文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: HarborArk API
+  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -191,6 +203,12 @@ paths:
                 data:
                   $ref: '#/definitions/controller.PageResponse'
               type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 获取用户组列表
       tags:
       - 用户组管理
@@ -221,6 +239,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 创建用户组
       tags:
       - 用户组管理
@@ -246,6 +270,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 删除用户组
       tags:
       - 用户组管理
@@ -271,10 +301,16 @@ paths:
                 data:
                   $ref: '#/definitions/model.UserGroup'
               type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 获取用户组详情
       tags:
       - 用户组管理
@@ -305,6 +341,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 更新用户组
       tags:
       - 用户组管理
@@ -336,6 +378,12 @@ paths:
                 data:
                   $ref: '#/definitions/controller.PageResponse'
               type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 获取用户列表
       tags:
       - 用户管理
@@ -366,6 +414,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 创建用户
       tags:
       - 用户管理
@@ -391,6 +445,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 删除用户
       tags:
       - 用户管理
@@ -416,10 +476,16 @@ paths:
                 data:
                   $ref: '#/definitions/model.User'
               type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 获取用户详情
       tags:
       - 用户管理
@@ -450,7 +516,19 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
       summary: 更新用户
       tags:
       - 用户管理
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
