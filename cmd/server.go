@@ -91,6 +91,7 @@ func startServer() {
 	r := gin.New()
 
 	// 添加中间件
+	r.Use(middleware.CORSMiddleware()) // 添加跨域中间件
 	r.Use(routerMiddleware.GinLogger(), routerMiddleware.GinRecovery(true))
 
 	// 设置 Swagger 文档
