@@ -1,0 +1,25 @@
+server:
+  port: "8080"
+  mode: "debug"
+
+logger:
+  level: debug
+  encoding: json
+  filename: logs/app.log
+  maxSize: 100
+  maxAge: 7
+  maxBackups: 10
+
+swagger:
+  title: "HarborArk API"
+  description: "HarborArk 项目 API 文档"
+  version: "1.0.0"
+  host: "localhost:8080"
+  basePath: "/api/v1"
+  enabled: true
+  autoUpdate: false
+  outputDir: "cmd/docs"
+  mainApiFile: "cmd/server.go"
+  schemes:
+    - "http"
+    - "https"
