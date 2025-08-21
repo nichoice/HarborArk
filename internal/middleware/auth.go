@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"HarborArk/internal/i18n"
 	"HarborArk/internal/utils"
 	"net/http"
 	"strings"
@@ -16,7 +17,7 @@ func JWTAuth() gin.HandlerFunc {
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "请求头中auth为空",
+				"message": i18n.T(c, "token_missing"),
 				"data":    nil,
 			})
 			c.Abort()
@@ -28,7 +29,7 @@ func JWTAuth() gin.HandlerFunc {
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "请求头中auth格式有误",
+				"message": i18n.T(c, "token_format_error"),
 				"data":    nil,
 			})
 			c.Abort()
@@ -40,7 +41,7 @@ func JWTAuth() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "无效的token",
+				"message": i18n.T(c, "invalid_token"),
 				"data":    nil,
 			})
 			c.Abort()
@@ -63,7 +64,7 @@ func RequireRole(requiredLevel int) gin.HandlerFunc {
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "未找到用户权限信息",
+				"message": i18n.T(c, "unauthorized"),
 				"data":    nil,
 			})
 			c.Abort()
@@ -74,7 +75,7 @@ func RequireRole(requiredLevel int) gin.HandlerFunc {
 		if int(userGroupID) > requiredLevel {
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":    403,
-				"message": "权限不足",
+				"message": i18n.T(c, "permission_denied"),
 				"data":    nil,
 			})
 			c.Abort()

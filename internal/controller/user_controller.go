@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"HarborArk/internal/i18n"
 	"HarborArk/internal/service"
 	"net/http"
 	"strconv"
@@ -33,7 +34,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "参数错误",
+			Message: i18n.T(ctx, "invalid_params"),
 			Data:    nil,
 		})
 		return
@@ -51,7 +52,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "创建成功",
+		Message: i18n.T(ctx, "create_success"),
 		Data:    user,
 	})
 }
@@ -71,7 +72,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "无效的用户ID",
+			Message: i18n.T(ctx, "invalid_user_id"),
 			Data:    nil,
 		})
 		return
@@ -81,7 +82,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, Response{
 			Code:    404,
-			Message: "用户不存在",
+			Message: i18n.T(ctx, "user_not_found"),
 			Data:    nil,
 		})
 		return
@@ -89,7 +90,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "获取成功",
+		Message: i18n.T(ctx, "get_success"),
 		Data:    user,
 	})
 }
@@ -119,7 +120,7 @@ func (c *UserController) GetUsers(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
-			Message: "获取用户列表失败",
+			Message: i18n.T(ctx, "get_user_list_failed"),
 			Data:    nil,
 		})
 		return
@@ -127,7 +128,7 @@ func (c *UserController) GetUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "获取成功",
+		Message: i18n.T(ctx, "get_success"),
 		Data: PageResponse{
 			List:     users,
 			Total:    total,
@@ -153,7 +154,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "无效的用户ID",
+			Message: i18n.T(ctx, "invalid_user_id"),
 			Data:    nil,
 		})
 		return
@@ -163,7 +164,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "参数错误",
+			Message: i18n.T(ctx, "invalid_params"),
 			Data:    nil,
 		})
 		return
@@ -191,7 +192,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "更新成功",
+		Message: i18n.T(ctx, "update_success"),
 		Data:    nil,
 	})
 }
@@ -211,7 +212,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "无效的用户ID",
+			Message: i18n.T(ctx, "invalid_user_id"),
 			Data:    nil,
 		})
 		return
@@ -228,7 +229,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "删除成功",
+		Message: i18n.T(ctx, "delete_success"),
 		Data:    nil,
 	})
 }
@@ -248,7 +249,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Code:    400,
-			Message: "参数错误",
+			Message: i18n.T(ctx, "invalid_params"),
 			Data:    nil,
 		})
 		return
@@ -266,7 +267,7 @@ func (c *UserController) Login(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, Response{
 		Code:    200,
-		Message: "登录成功",
+		Message: i18n.T(ctx, "login_success"),
 		Data: LoginResponse{
 			Token: token,
 			User:  user,

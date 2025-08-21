@@ -3,6 +3,7 @@ package cmd
 import (
 	"HarborArk/config"
 	"HarborArk/internal/controller"
+	"HarborArk/internal/i18n"
 	"HarborArk/internal/middleware"
 	"HarborArk/internal/migration"
 	"HarborArk/internal/model"
@@ -61,6 +62,12 @@ func startServer() {
 		panic(fmt.Errorf("初始化日志失败: %v", err))
 	}
 
+	// 初始化国际化
+	if err := i18n.Init("translations"); err != nil {
+		zap.L().Fatal("国际化初始化失败", zap.Error(err))
+	}
+	zap.L().Info("国际化初始化成功")
+
 	// 初始化数据库
 	config.ConnectDB()
 
@@ -95,7 +102,7 @@ func startServer() {
 	// 基础路由
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "欢迎使用 HarborArk API!",
+			"message": i18n.T(c, "welcome"),
 			"version": "1.0.0",
 			"docs":    "/swagger/index.html",
 		})
@@ -104,8 +111,9 @@ func startServer() {
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
-			"time":   "2025-01-21T11:00:00Z",
+			"status":  "ok",
+			"message": i18n.T(c, "health_ok"),
+			"time":    "2025-01-21T11:00:00Z",
 		})
 	})
 
