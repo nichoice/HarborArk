@@ -15,7 +15,7 @@ export interface UpdateUserGroupRequest {
 
 export const userGroupsApi = {
   // 获取用户组列表
-  getUserGroups: (params?: { page?: number; limit?: number }) => {
+  getUserGroups: (params?: { page?: number; page_size?: number }) => {
     return request.get('/user-groups', { params })
   },
 

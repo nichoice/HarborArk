@@ -181,10 +181,10 @@ const fetchUserGroups = async () => {
   try {
     const response = await userGroupsApi.getUserGroups({
       page: pagination.current,
-      limit: pagination.pageSize
+      page_size: pagination.pageSize
     })
-    userGroups.value = response.data || []
-    pagination.total = response.total || 0
+    userGroups.value = response.data?.list || []
+    pagination.total = response.data?.total || 0
   } catch (error) {
     console.error('获取用户组列表失败:', error)
   } finally {

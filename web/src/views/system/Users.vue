@@ -194,10 +194,10 @@ const fetchUsers = async () => {
   try {
     const response = await usersApi.getUsers({
       page: pagination.current,
-      limit: pagination.pageSize
+      page_size: pagination.pageSize
     })
-    users.value = response.data || []
-    pagination.total = response.total || 0
+    users.value = response.data?.list || []
+    pagination.total = response.data?.total || 0
   } catch (error) {
     console.error('获取用户列表失败:', error)
   } finally {

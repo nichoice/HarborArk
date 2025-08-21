@@ -18,7 +18,7 @@ export interface UpdateUserRequest {
 
 export const usersApi = {
   // 获取用户列表
-  getUsers: (params?: { page?: number; limit?: number }) => {
+  getUsers: (params?: { page?: number; page_size?: number }) => {
     return request.get('/users', { params })
   },
 
