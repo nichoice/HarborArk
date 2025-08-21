@@ -53,7 +53,7 @@ func init() {
 
 	// 添加标志
 	generateCmd.Flags().StringP("output", "o", "cmd/docs", "输出目录")
-	generateCmd.Flags().StringP("main", "m", "cmd/server.go", "主 API 文件")
+	generateCmd.Flags().StringP("main", "m", "router/api/*.go", "主 API 文件")
 	generateCmd.Flags().BoolP("force", "f", false, "强制重新生成")
 
 	// 添加子命令

@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"HarborArk/config"
+	"HarborArk/internal/controller"
+	"HarborArk/internal/middleware"
+	"HarborArk/internal/migration"
+	"HarborArk/internal/model"
 	"HarborArk/router"
-	"HarborArk/router/middleware"
+	routerMiddleware "HarborArk/router/middleware"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -53,12 +57,17 @@ func startServer() {
 	swaggerConfig := config.GetSwaggerConfig()
 
 	// 初始化日志系统
-	if err := middleware.Init(logConfig, serverConfig.Mode); err != nil {
+	if err := routerMiddleware.Init(logConfig, serverConfig.Mode); err != nil {
 		panic(fmt.Errorf("初始化日志失败: %v", err))
 	}
 
 	// 初始化数据库
 	config.ConnectDB()
+
+	// 数据库迁移
+	if err := migration.AutoMigrate(); err != nil {
+		zap.L().Fatal("数据库迁移失败", zap.Error(err))
+	}
 
 	// 自动更新 Swagger 文档
 	if swaggerConfig.AutoUpdate && swaggerConfig.Enabled {
@@ -75,10 +84,13 @@ func startServer() {
 	r := gin.New()
 
 	// 添加中间件
-	r.Use(middleware.GinLogger(), middleware.GinRecovery(true))
+	r.Use(routerMiddleware.GinLogger(), routerMiddleware.GinRecovery(true))
 
 	// 设置 Swagger 文档
 	router.SetupSwagger(r)
+
+	// 设置用户管理路由
+	setupUserRoutes(r)
 
 	// 基础路由
 	r.GET("/", func(c *gin.Context) {
@@ -107,5 +119,42 @@ func startServer() {
 
 	if err := r.Run(port); err != nil {
 		zap.L().Fatal("服务器启动失败", zap.Error(err))
+	}
+}
+
+// setupUserRoutes 设置用户管理路由
+func setupUserRoutes(r *gin.Engine) {
+	userController := controller.NewUserController()
+	userGroupController := controller.NewUserGroupController()
+
+	// API版本组
+	v1 := r.Group("/api/v1")
+
+	// 认证路由（无需JWT验证）
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/login", userController.Login)
+	}
+
+	// 用户路由（需要JWT验证）
+	users := v1.Group("/users")
+	users.Use(middleware.JWTAuth())
+	{
+		users.GET("", userController.GetUsers)
+		users.GET("/:id", userController.GetUser)
+		users.POST("", middleware.RequireRole(model.SuperAdminGroup), userController.CreateUser)
+		users.PUT("/:id", middleware.RequireRole(model.SuperAdminGroup), userController.UpdateUser)
+		users.DELETE("/:id", middleware.RequireRole(model.SuperAdminGroup), userController.DeleteUser)
+	}
+
+	// 用户组路由（需要JWT验证）
+	userGroups := v1.Group("/user-groups")
+	userGroups.Use(middleware.JWTAuth())
+	{
+		userGroups.GET("", userGroupController.GetUserGroups)
+		userGroups.GET("/:id", userGroupController.GetUserGroup)
+		userGroups.POST("", middleware.RequireRole(model.SuperAdminGroup), userGroupController.CreateUserGroup)
+		userGroups.PUT("/:id", middleware.RequireRole(model.SuperAdminGroup), userGroupController.UpdateUserGroup)
+		userGroups.DELETE("/:id", middleware.RequireRole(model.SuperAdminGroup), userGroupController.DeleteUserGroup)
 	}
 }

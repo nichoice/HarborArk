@@ -1,45 +1,341 @@
-basePath: /api/v1
 definitions:
-  controller.User:
+  controller.CreateUserGroupRequest:
     properties:
-      age:
-        example: 25
-        type: integer
-      id:
+      description:
+        example: 系统管理员组
+        type: string
+      level:
         example: 1
         type: integer
       name:
-        example: 张三
+        example: 管理员
+        type: string
+    required:
+    - level
+    - name
+    type: object
+  controller.CreateUserRequest:
+    properties:
+      group_id:
+        example: 1
+        type: integer
+      password:
+        example: "123456"
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - group_id
+    - password
+    - username
+    type: object
+  controller.LoginRequest:
+    properties:
+      password:
+        example: "123456"
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  controller.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  controller.PageResponse:
+    properties:
+      list: {}
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  controller.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
         type: string
     type: object
-host: localhost:8080
+  controller.UpdateUserGroupRequest:
+    properties:
+      description:
+        example: 新的描述
+        type: string
+      level:
+        example: 2
+        type: integer
+      name:
+        example: 新管理员
+        type: string
+    type: object
+  controller.UpdateUserRequest:
+    properties:
+      group_id:
+        example: 2
+        type: integer
+      is_enabled:
+        example: true
+        type: boolean
+      password:
+        example: newpassword
+        type: string
+    type: object
+  model.User:
+    properties:
+      created_at:
+        type: string
+      group:
+        $ref: '#/definitions/model.UserGroup'
+      group_id:
+        type: integer
+      id:
+        type: integer
+      is_enabled:
+        type: boolean
+      last_login_at:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  model.UserGroup:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
+    type: object
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: HarborArk 项目 API 文档
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: HarborArk API
-  version: "1.0"
+  contact: {}
 paths:
-  /users:
-    get:
+  /auth/login:
+    post:
       consumes:
       - application/json
-      description: 获取所有用户的列表
+      description: 用户登录获取JWT token
+      parameters:
+      - description: 登录信息
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/controller.User'
-            type: array
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/controller.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 用户登录
+      tags:
+      - 认证
+  /user-groups:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取用户组列表
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/controller.PageResponse'
+              type: object
+      summary: 获取用户组列表
+      tags:
+      - 用户组管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新用户组
+      parameters:
+      - description: 用户组信息
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/controller.CreateUserGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.UserGroup'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 创建用户组
+      tags:
+      - 用户组管理
+  /user-groups/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除用户组
+      parameters:
+      - description: 用户组ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 删除用户组
+      tags:
+      - 用户组管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取用户组详情
+      parameters:
+      - description: 用户组ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.UserGroup'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 获取用户组详情
+      tags:
+      - 用户组管理
+    put:
+      consumes:
+      - application/json
+      description: 更新用户组信息
+      parameters:
+      - description: 用户组ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用户组信息
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UpdateUserGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 更新用户组
+      tags:
+      - 用户组管理
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取用户列表
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/controller.PageResponse'
+              type: object
       summary: 获取用户列表
       tags:
       - 用户管理
@@ -53,27 +349,31 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/controller.User'
+          $ref: '#/definitions/controller.CreateUserRequest'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/controller.User'
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/controller.Response'
       summary: 创建用户
       tags:
       - 用户管理
   /users/{id}:
-    get:
+    delete:
       consumes:
       - application/json
-      description: 根据用户ID获取单个用户信息
+      description: 删除用户
       parameters:
       - description: 用户ID
         in: path
@@ -86,18 +386,71 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.User'
+            $ref: '#/definitions/controller.Response'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/controller.Response'
+      summary: 删除用户
+      tags:
+      - 用户管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取用户详情
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties: true
-            type: object
-      summary: 根据ID获取用户
+            $ref: '#/definitions/controller.Response'
+      summary: 获取用户详情
+      tags:
+      - 用户管理
+    put:
+      consumes:
+      - application/json
+      description: 更新用户信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 更新用户
       tags:
       - 用户管理
 swagger: "2.0"
