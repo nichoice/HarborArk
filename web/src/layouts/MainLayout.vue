@@ -159,18 +159,19 @@ const handleLogout = () => {
 }
 
 .sidebar {
-  background: #001529;
-  color: white;
+  background: #f8f9fa;
+  color: #333;
+  border-right: 1px solid #e9ecef;
 }
 
 .logo {
   padding: 16px 24px;
   text-align: center;
-  border-bottom: 1px solid #002140;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .logo h2 {
-  color: white;
+  color: #333;
   margin: 0;
   font-size: 18px;
   font-weight: 600;
@@ -183,18 +184,36 @@ const handleLogout = () => {
 
 .sidebar-menu :deep(.t-menu-item),
 .sidebar-menu :deep(.t-submenu__title) {
-  color: rgba(255, 255, 255, 0.85);
+  color: #333 !important;
 }
 
 .sidebar-menu :deep(.t-menu-item:hover),
 .sidebar-menu :deep(.t-submenu__title:hover) {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: #e9ecef !important;
+  color: #333 !important;
 }
 
 .sidebar-menu :deep(.t-menu-item.t-is-active) {
-  background: #1890ff;
-  color: white;
+  background: #1890ff !important;
+  color: white !important;
+}
+
+.sidebar-menu :deep(.t-submenu .t-menu-item) {
+  color: #666 !important;
+}
+
+.sidebar-menu :deep(.t-submenu .t-menu-item:hover) {
+  background: #e9ecef !important;
+  color: #333 !important;
+}
+
+.sidebar-menu :deep(.t-submenu .t-menu-item.t-is-active) {
+  background: #1890ff !important;
+  color: white !important;
+}
+
+.sidebar-menu :deep(.t-icon) {
+  color: inherit !important;
 }
 
 .header {
