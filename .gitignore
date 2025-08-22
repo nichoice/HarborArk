@@ -9,7 +9,7 @@
 *.dylib
 *.db
 bin/
-
+web/
 # Test binary, built with `go test -c`
 *.test
 
