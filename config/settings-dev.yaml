@@ -23,3 +23,11 @@ swagger:
   schemes:
     - "http"
     - "https"
+
+metadata:
+  badger:
+    path: "data/badger"
+
+audit:
+  retentionDays: 30
+  exportDir: "exports/audit"

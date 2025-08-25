@@ -8,9 +8,11 @@ import (
 
 // AppConfig 应用配置
 type AppConfig struct {
-	Server  ServerConfig  `mapstructure:"server"`
-	Logger  LogConfig     `mapstructure:"logger"`
-	Swagger SwaggerConfig `mapstructure:"swagger"`
+	Server   ServerConfig   `mapstructure:"server"`
+	Logger   LogConfig      `mapstructure:"logger"`
+	Swagger  SwaggerConfig  `mapstructure:"swagger"`
+	Metadata MetadataConfig `mapstructure:"metadata"`
+	Audit    AuditConfig    `mapstructure:"audit"`
 }
 
 // ServerConfig 服务器配置
@@ -41,6 +43,22 @@ type SwaggerConfig struct {
 	OutputDir   string   `mapstructure:"outputDir"`
 	MainApiFile string   `mapstructure:"mainApiFile"`
 	Schemes     []string `mapstructure:"schemes"`
+}
+
+// BadgerConfig BadgerDB 配置
+type BadgerConfig struct {
+	Path string `mapstructure:"path"`
+}
+
+// MetadataConfig 元数据配置
+type MetadataConfig struct {
+	Badger BadgerConfig `mapstructure:"badger"`
+}
+
+// AuditConfig 审计配置
+type AuditConfig struct {
+	RetentionDays int    `mapstructure:"retentionDays"`
+	ExportDir     string `mapstructure:"exportDir"`
 }
 
 var Config *AppConfig
@@ -103,4 +121,25 @@ func GetSwaggerConfig() SwaggerConfig {
 		}
 	}
 	return Config.Swagger
+}
+
+// GetBadgerConfig 获取 Badger 配置
+func GetBadgerConfig() BadgerConfig {
+	if Config == nil {
+		return BadgerConfig{
+			Path: "data/badger",
+		}
+	}
+	return Config.Metadata.Badger
+}
+
+// GetAuditConfig 获取审计配置
+func GetAuditConfig() AuditConfig {
+	if Config == nil {
+		return AuditConfig{
+			RetentionDays: 30,
+			ExportDir:     "exports/audit",
+		}
+	}
+	return Config.Audit
 }

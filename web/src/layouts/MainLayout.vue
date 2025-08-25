@@ -1,156 +1,158 @@
 <template>
   <t-layout class="main-layout">
-    <!-- 侧边栏 -->
-    <t-aside width="240px" class="sidebar">
-      <div class="logo">
-        <h2>HarborArk</h2>
+    <t-aside class="sidebar" :width="240">
+      <div class="sidebar-header">
+        <div class="logo">
+          <t-icon name="cloud" size="24px" />
+          <span class="logo-text">HarborArk</span>
+        </div>
       </div>
       
-      <t-menu
-        v-model:value="activeMenu"
-        :default-expanded="['system']"
+      <t-menu 
+        v-model:value="activeMenu" 
+        :default-expanded="['system-management', 'file-management']"
+        theme="light"
         @change="handleMenuChange"
-        class="sidebar-menu"
       >
-        <t-menu-item value="dashboard">
+        <t-submenu value="file-management" title="文件管理">
           <template #icon>
-            <t-icon name="dashboard" />
+            <t-icon name="folder" />
           </template>
-          仪表盘
-        </t-menu-item>
+          <t-menu-item value="file-browser">
+            <template #icon>
+              <t-icon name="browse" />
+            </template>
+            文件浏览器
+          </t-menu-item>
+          <t-menu-item value="file-upload">
+            <template #icon>
+              <t-icon name="upload" />
+            </template>
+            文件上传
+          </t-menu-item>
+        </t-submenu>
         
-        <t-submenu value="system">
+        <t-submenu value="system-management" title="系统管理">
           <template #icon>
             <t-icon name="setting" />
           </template>
-          <template #title>系统管理</template>
-          
           <t-menu-item value="users">
             <template #icon>
-              <t-icon name="user" />
+              <t-icon name="user-list" />
             </template>
             用户管理
           </t-menu-item>
-          
           <t-menu-item value="user-groups">
             <template #icon>
               <t-icon name="usergroup" />
             </template>
             用户组管理
           </t-menu-item>
+          <t-menu-item value="audit-logs">
+            <template #icon>
+              <t-icon name="file-text" />
+            </template>
+            审计日志
+          </t-menu-item>
+          <t-menu-item value="settings">
+            <template #icon>
+              <t-icon name="tools" />
+            </template>
+            系统设置
+          </t-menu-item>
         </t-submenu>
       </t-menu>
     </t-aside>
-
-    <!-- 主内容区 -->
+    
     <t-layout>
-      <!-- 顶部导航 -->
       <t-header class="header">
         <div class="header-content">
-          <div class="breadcrumb">
+          <div class="header-left">
             <t-breadcrumb>
-              <t-breadcrumb-item v-for="item in breadcrumbs" :key="item.path">
-                {{ item.title }}
-              </t-breadcrumb-item>
+              <t-breadcrumb-item>{{ getCurrentPageTitle() }}</t-breadcrumb-item>
             </t-breadcrumb>
           </div>
-          
-          <div class="user-info">
-            <t-dropdown>
-              <div class="user-avatar">
-                <t-avatar size="small">{{ userInitial }}</t-avatar>
-                <span class="username">{{ authStore.user?.full_name || authStore.user?.username }}</span>
-                <t-icon name="chevron-down" />
-              </div>
-              
-              <t-dropdown-menu>
-                <t-dropdown-item @click="handleLogout">
-                  <t-icon name="logout" />
-                  退出登录
-                </t-dropdown-item>
-              </t-dropdown-menu>
+          <div class="header-actions">
+            <t-dropdown :options="userMenuOptions" @click="handleUserMenu">
+              <t-button variant="text" class="user-btn">
+                <t-icon name="user-circle" size="20px" />
+                <span>管理员</span>
+                <t-icon name="chevron-down" size="16px" />
+              </t-button>
             </t-dropdown>
           </div>
         </div>
       </t-header>
-
-      <!-- 内容区域 -->
+      
       <t-content class="content">
-        <router-view />
+        <div class="content-wrapper">
+          <router-view />
+        </div>
       </t-content>
     </t-layout>
   </t-layout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MessagePlugin } from 'tdesign-vue-next'
-import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
 
-const activeMenu = ref('dashboard')
+const activeMenu = ref('users')
 
-// 用户名首字母
-const userInitial = computed(() => {
-  const name = authStore.user?.full_name || authStore.user?.username || 'U'
-  return name.charAt(0).toUpperCase()
-})
+const userMenuOptions = [
+  { content: '个人设置', value: 'profile' },
+  { content: '退出登录', value: 'logout' }
+]
 
-// 面包屑导航
-const breadcrumbs = computed(() => {
-  const crumbs = []
-  
-  if (route.path.startsWith('/system')) {
-    crumbs.push({ title: '系统管理', path: '/system' })
-    
-    if (route.path === '/system/users') {
-      crumbs.push({ title: '用户管理', path: '/system/users' })
-    } else if (route.path === '/system/user-groups') {
-      crumbs.push({ title: '用户组管理', path: '/system/user-groups' })
-    }
-  } else if (route.path === '/dashboard') {
-    crumbs.push({ title: '仪表盘', path: '/dashboard' })
-  }
-  
-  return crumbs
-})
-
-// 监听路由变化更新菜单
-watch(() => route.path, (newPath) => {
-  if (newPath === '/dashboard') {
-    activeMenu.value = 'dashboard'
-  } else if (newPath === '/system/users') {
-    activeMenu.value = 'users'
-  } else if (newPath === '/system/user-groups') {
-    activeMenu.value = 'user-groups'
-  }
-}, { immediate: true })
-
-// 菜单点击处理
 const handleMenuChange = (value: string) => {
-  switch (value) {
-    case 'dashboard':
-      router.push('/dashboard')
-      break
-    case 'users':
-      router.push('/system/users')
-      break
-    case 'user-groups':
-      router.push('/system/user-groups')
-      break
+  console.log('菜单变化:', value)
+  if (value) {
+    router.push(`/${value}`)
   }
 }
 
-// 退出登录
-const handleLogout = () => {
-  authStore.logout()
-  MessagePlugin.success('已退出登录')
-  router.push('/login')
+const handleMenuClick = (value: any) => {
+  console.log('菜单点击:', value)
+  // TDesign 菜单点击事件可能传递的是对象
+  const menuValue = typeof value === 'string' ? value : value.value || value
+  router.push(`/${menuValue}`)
 }
+
+const handleUserMenu = (data: any) => {
+  if (data.value === 'logout') {
+    // 处理退出登录
+    console.log('退出登录')
+  }
+}
+
+// 获取当前页面标题
+const getCurrentPageTitle = () => {
+  const titleMap: Record<string, string> = {
+    '/users': '用户管理',
+    '/user-groups': '用户组管理',
+    '/file-browser': '文件浏览器',
+    '/file-upload': '文件上传',
+    '/audit-logs': '审计日志',
+    '/settings': '系统设置'
+  }
+  return titleMap[route.path] || '首页'
+}
+
+// 监听路由变化更新菜单状态
+watch(() => route.path, (newPath) => {
+  const pathMap: Record<string, string> = {
+    '/users': 'users',
+    '/user-groups': 'user-groups',
+    '/file-browser': 'file-browser',
+    '/file-upload': 'file-upload',
+    '/audit-logs': 'audit-logs',
+    '/settings': 'settings'
+  }
+  activeMenu.value = pathMap[newPath] || 'users'
+}, { immediate: true })
 </script>
 
 <style scoped>
@@ -159,103 +161,81 @@ const handleLogout = () => {
 }
 
 .sidebar {
-  background: #f8f9fa;
-  color: #333;
-  border-right: 1px solid #e9ecef;
+  background: #fff;
+  border-right: 1px solid #e7e7e7;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e7e7e7;
+  background: #fafafa;
 }
 
 .logo {
-  padding: 16px 24px;
-  text-align: center;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.logo h2 {
-  color: #333;
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 600;
+  color: #0052d9;
 }
 
-.sidebar-menu {
-  background: transparent;
-  border: none;
-}
-
-.sidebar-menu :deep(.t-menu-item),
-.sidebar-menu :deep(.t-submenu__title) {
-  color: #333 !important;
-}
-
-.sidebar-menu :deep(.t-menu-item:hover),
-.sidebar-menu :deep(.t-submenu__title:hover) {
-  background: #e9ecef !important;
-  color: #333 !important;
-}
-
-.sidebar-menu :deep(.t-menu-item.t-is-active) {
-  background: #1890ff !important;
-  color: white !important;
-}
-
-.sidebar-menu :deep(.t-submenu .t-menu-item) {
-  color: #666 !important;
-}
-
-.sidebar-menu :deep(.t-submenu .t-menu-item:hover) {
-  background: #e9ecef !important;
-  color: #333 !important;
-}
-
-.sidebar-menu :deep(.t-submenu .t-menu-item.t-is-active) {
-  background: #1890ff !important;
-  color: white !important;
-}
-
-.sidebar-menu :deep(.t-icon) {
-  color: inherit !important;
+.logo-text {
+  color: #262626;
 }
 
 .header {
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e7e7e7;
+  padding: 0;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 100%;
+  height: 56px;
+  padding: 0 24px;
 }
 
-.user-info {
+.header-left {
+  flex: 1;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
 }
 
-.user-avatar {
+.user-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-}
-
-.user-avatar:hover {
-  background: #f5f5f5;
-}
-
-.username {
-  font-size: 14px;
-  color: #333;
+  gap: 4px;
 }
 
 .content {
-  padding: 24px;
   background: #f5f5f5;
-  overflow-y: auto;
+  padding: 0;
+}
+
+.content-wrapper {
+  padding: 24px;
+  min-height: calc(100vh - 56px);
+}
+
+:deep(.t-menu) {
+  border-right: none;
+}
+
+:deep(.t-menu .t-menu__item) {
+  margin: 2px 8px;
+  border-radius: 6px;
+}
+
+:deep(.t-menu .t-submenu__title) {
+  margin: 2px 8px;
+  border-radius: 6px;
 }
 </style>

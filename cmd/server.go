@@ -5,6 +5,7 @@ import (
 	"HarborArk/internal/i18n"
 	"HarborArk/internal/middleware"
 	"HarborArk/internal/migration"
+	"HarborArk/internal/service"
 	"HarborArk/router"
 	api "HarborArk/router/api"
 	routerMiddleware "HarborArk/router/middleware"
@@ -80,6 +81,14 @@ func startServer() {
 		zap.L().Fatal("数据库迁移失败", zap.Error(err))
 	}
 
+	// 初始化 BadgerDB（用于元数据与审计日志）
+	if err := config.InitBadger(); err != nil {
+		zap.L().Fatal("Badger 初始化失败", zap.Error(err))
+	}
+	// 启动审计日志保留清理任务
+	auditCfg := config.GetAuditConfig()
+	service.StartAuditRetentionWorker(auditCfg.RetentionDays)
+
 	// 自动更新 Swagger 文档
 	if swaggerConfig.AutoUpdate && swaggerConfig.Enabled {
 		AutoUpdateSwaggerDocs()
@@ -103,6 +112,12 @@ func startServer() {
 
 	// 设置用户管理路由
 	api.SetupUserRoutes(r)
+
+	// 设置文件管理路由
+	api.SetupFSRoutes(r)
+
+	// 提供前端静态资源
+	r.Static("/web", "./web")
 
 	// 基础路由
 	r.GET("/", func(c *gin.Context) {

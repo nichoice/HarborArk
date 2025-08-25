@@ -1,63 +1,40 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import MainLayout from '../layouts/MainLayout.vue';
+import Login from '../views/Login.vue';
+import Users from '../views/Users.vue';
+import UserGroups from '../views/UserGroups.vue';
+import FileBrowser from '../views/FileBrowser.vue';
+import FileUpload from '../views/FileUpload.vue';
+
+const routes: RouteRecordRaw[] = [
+  { path: '/login', name: 'login', component: Login },
+  {
+    path: '/',
+    component: MainLayout,
+    children: [
+      { path: '', redirect: '/users' },
+      { path: 'users', name: 'users', component: Users, meta: { requiresAuth: true } },
+      { path: 'user-groups', name: 'user-groups', component: UserGroups, meta: { requiresAuth: true } },
+      { path: 'file-browser', name: 'file-browser', component: FileBrowser, meta: { requiresAuth: true } },
+      { path: 'file-upload', name: 'file-upload', component: FileUpload, meta: { requiresAuth: true } },
+      { path: 'audit-logs', name: 'audit-logs', component: FileBrowser, meta: { requiresAuth: true } },
+      { path: 'settings', name: 'settings', component: FileBrowser, meta: { requiresAuth: true } },
+    ],
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/views/Login.vue'),
-      meta: { requiresAuth: false }
-    },
-    {
-      path: '/',
-      name: 'Layout',
-      component: () => import('@/layouts/MainLayout.vue'),
-      meta: { requiresAuth: true },
-      redirect: '/dashboard',
-      children: [
-        {
-          path: '/dashboard',
-          name: 'Dashboard',
-          component: () => import('@/views/Dashboard.vue'),
-          meta: { title: '仪表盘' }
-        },
-        {
-          path: '/system',
-          name: 'System',
-          meta: { title: '系统管理' },
-          children: [
-            {
-              path: '/system/users',
-              name: 'Users',
-              component: () => import('@/views/system/Users.vue'),
-              meta: { title: '用户管理' }
-            },
-            {
-              path: '/system/user-groups',
-              name: 'UserGroups',
-              component: () => import('@/views/system/UserGroups.vue'),
-              meta: { title: '用户组管理' }
-            }
-          ]
-        }
-      ]
-    }
-  ]
-})
+  routes,
+});
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/')
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token') || '';
+  if (to.meta?.requiresAuth && !token) {
+    next({ name: 'login', query: { redirect: to.fullPath } });
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;
