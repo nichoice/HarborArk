@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   controller.CreateUserGroupRequest:
     properties:
@@ -92,6 +91,72 @@ definitions:
         example: newpassword
         type: string
     type: object
+  controller.deleteReq:
+    properties:
+      path:
+        type: string
+    required:
+    - path
+    type: object
+  controller.exportAuditReq:
+    properties:
+      from:
+        description: RFC3339
+        type: string
+      to:
+        description: RFC3339
+        type: string
+    required:
+    - from
+    - to
+    type: object
+  controller.listResponse:
+    properties:
+      has_more:
+        type: boolean
+      limit:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/service.FileItem'
+        type: array
+      next_offset:
+        type: integer
+      offset:
+        type: integer
+    type: object
+  controller.mkdirReq:
+    properties:
+      name:
+        description: 新目录名
+        type: string
+      path:
+        description: 父目录
+        type: string
+    required:
+    - name
+    - path
+    type: object
+  controller.renameReq:
+    properties:
+      new_path:
+        type: string
+      old_path:
+        type: string
+    required:
+    - new_path
+    - old_path
+    type: object
+  controller.updateMetaReq:
+    properties:
+      meta:
+        $ref: '#/definitions/service.FileMetadata'
+      path:
+        type: string
+    required:
+    - meta
+    - path
+    type: object
   model.User:
     properties:
       created_at:
@@ -130,19 +195,53 @@ definitions:
           $ref: '#/definitions/model.User'
         type: array
     type: object
-host: localhost:8080
+  service.FileItem:
+    properties:
+      is_dir:
+        type: boolean
+      meta:
+        $ref: '#/definitions/service.FileMetadata'
+      mod_time:
+        description: ms
+        type: integer
+      mode:
+        type: integer
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+    type: object
+  service.FileMetadata:
+    properties:
+      created_at:
+        description: ms
+        type: integer
+      created_by:
+        type: integer
+      created_by_name:
+        type: string
+      custom:
+        additionalProperties:
+          type: string
+        type: object
+      notes:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      updated_at:
+        description: ms
+        type: integer
+      updated_by:
+        type: integer
+      updated_by_name:
+        type: string
+    type: object
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: HarborArk 项目 API 文档
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: HarborArk API
-  version: "1.0"
+  contact: {}
 paths:
   /auth/login:
     post:
@@ -175,6 +274,190 @@ paths:
       summary: 用户登录
       tags:
       - 认证
+  /fs/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.deleteReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除文件或目录
+      tags:
+      - 文件管理
+  /fs/export-audit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 时间范围
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.exportAuditReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: zip 文件路径
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 导出审计日志（Zip）
+      tags:
+      - 文件管理
+  /fs/list:
+    get:
+      parameters:
+      - description: 目录路径
+        in: query
+        name: path
+        required: true
+        type: string
+      - default: 0
+        description: 偏移
+        in: query
+        name: offset
+        type: integer
+      - default: 50
+        description: 数量
+        in: query
+        name: limit
+        type: integer
+      - default: false
+        description: 是否包含隐藏文件
+        in: query
+        name: hidden
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/controller.listResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 列出目录
+      tags:
+      - 文件管理
+  /fs/metadata:
+    get:
+      parameters:
+      - description: 路径
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.FileMetadata'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取元数据
+      tags:
+      - 文件管理
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.updateMetaReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新元数据
+      tags:
+      - 文件管理
+  /fs/mkdir:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.mkdirReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建目录
+      tags:
+      - 文件管理
+  /fs/rename:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.renameReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+      security:
+      - BearerAuth: []
+      summary: 重命名或移动
+      tags:
+      - 文件管理
   /user-groups:
     get:
       consumes:
@@ -525,10 +808,4 @@ paths:
       summary: 更新用户
       tags:
       - 用户管理
-securityDefinitions:
-  BearerAuth:
-    description: Type "Bearer" followed by a space and JWT token.
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"
