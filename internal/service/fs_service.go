@@ -45,9 +45,31 @@ type FileItem struct {
 
 type FSService struct{}
 
+// validatePath 验证路径是否在允许的目录范围内
+func validatePath(path string) error {
+	fmConfig := config.GetFileManagerConfig()
+	if !fmConfig.RestrictToAllowedDirs {
+		return nil
+	}
+
+	cleanPath := filepath.Clean(path)
+	for _, allowedDir := range fmConfig.AllowedDirs {
+		allowedClean := filepath.Clean(allowedDir)
+		if strings.HasPrefix(cleanPath, allowedClean) {
+			return nil
+		}
+	}
+
+	return errors.New("访问被拒绝：路径不在允许的目录范围内")
+}
+
 // ListDir 以分页方式列出目录，避免一次性加载巨量文件
 // 返回 items 与 hasMore（是否还有后续数据）
 func (s *FSService) ListDir(p string, offset, limit int, includeHidden bool) ([]FileItem, bool, error) {
+	// 验证路径权限
+	if err := validatePath(p); err != nil {
+		return nil, false, err
+	}
 	if limit <= 0 {
 		limit = 50
 	}
@@ -173,6 +195,11 @@ func getMetaTxn(txn *badger.Txn, path string) (*FileMetadata, error) {
 }
 
 func GetMetadata(path string) (*FileMetadata, error) {
+	// 验证路径权限
+	if err := validatePath(path); err != nil {
+		return nil, err
+	}
+
 	db := config.GetBadger()
 	if db == nil {
 		return nil, nil
@@ -190,6 +217,11 @@ func GetMetadata(path string) (*FileMetadata, error) {
 }
 
 func UpsertMetadata(path string, meta FileMetadata) error {
+	// 验证路径权限
+	if err := validatePath(path); err != nil {
+		return err
+	}
+
 	db := config.GetBadger()
 	if db == nil {
 		return nil
@@ -207,6 +239,14 @@ func UpsertMetadata(path string, meta FileMetadata) error {
 }
 
 func RenamePath(oldPath, newPath string) error {
+	// 验证路径权限
+	if err := validatePath(oldPath); err != nil {
+		return err
+	}
+	if err := validatePath(newPath); err != nil {
+		return err
+	}
+
 	// 先重命名文件系统
 	if err := os.Rename(filepath.Clean(oldPath), filepath.Clean(newPath)); err != nil {
 		return err
@@ -271,6 +311,11 @@ func RenamePath(oldPath, newPath string) error {
 }
 
 func DeletePath(path string) error {
+	// 验证路径权限
+	if err := validatePath(path); err != nil {
+		return err
+	}
+
 	clean := filepath.Clean(path)
 	// 删除文件/目录（目录递归）
 	if err := os.RemoveAll(clean); err != nil {
@@ -303,7 +348,18 @@ func DeletePath(path string) error {
 }
 
 func Mkdir(parent, name string) error {
+	// 验证路径权限
+	if err := validatePath(parent); err != nil {
+		return err
+	}
+
 	p := filepath.Join(filepath.Clean(parent), name)
+
+	// 验证新创建的目录路径
+	if err := validatePath(p); err != nil {
+		return err
+	}
+
 	return os.MkdirAll(p, 0o755)
 }
 

@@ -31,3 +31,12 @@ metadata:
 audit:
   retentionDays: 30
   exportDir: "exports/audit"
+
+fileManager:
+  rootDir: "/Users/nic/Documents"
+  allowedDirs:
+    - "/Users/nic/Documents"
+    - "/Users/nic/Downloads"
+    - "/Users/nic/Desktop"
+  restrictToAllowedDirs: true
+  maxDepth: 10

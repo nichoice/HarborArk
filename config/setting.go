@@ -8,11 +8,12 @@ import (
 
 // AppConfig 应用配置
 type AppConfig struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Logger   LogConfig      `mapstructure:"logger"`
-	Swagger  SwaggerConfig  `mapstructure:"swagger"`
-	Metadata MetadataConfig `mapstructure:"metadata"`
-	Audit    AuditConfig    `mapstructure:"audit"`
+	Server      ServerConfig      `mapstructure:"server"`
+	Logger      LogConfig         `mapstructure:"logger"`
+	Swagger     SwaggerConfig     `mapstructure:"swagger"`
+	Metadata    MetadataConfig    `mapstructure:"metadata"`
+	Audit       AuditConfig       `mapstructure:"audit"`
+	FileManager FileManagerConfig `mapstructure:"fileManager"`
 }
 
 // ServerConfig 服务器配置
@@ -59,6 +60,14 @@ type MetadataConfig struct {
 type AuditConfig struct {
 	RetentionDays int    `mapstructure:"retentionDays"`
 	ExportDir     string `mapstructure:"exportDir"`
+}
+
+// FileManagerConfig 文件管理器配置
+type FileManagerConfig struct {
+	RootDir               string   `mapstructure:"rootDir"`
+	AllowedDirs           []string `mapstructure:"allowedDirs"`
+	RestrictToAllowedDirs bool     `mapstructure:"restrictToAllowedDirs"`
+	MaxDepth              int      `mapstructure:"maxDepth"`
 }
 
 var Config *AppConfig
@@ -142,4 +151,17 @@ func GetAuditConfig() AuditConfig {
 		}
 	}
 	return Config.Audit
+}
+
+// GetFileManagerConfig 获取文件管理器配置
+func GetFileManagerConfig() FileManagerConfig {
+	if Config == nil {
+		return FileManagerConfig{
+			RootDir:               "/",
+			AllowedDirs:           []string{"/"},
+			RestrictToAllowedDirs: false,
+			MaxDepth:              10,
+		}
+	}
+	return Config.FileManager
 }
