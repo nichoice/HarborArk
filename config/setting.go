@@ -14,6 +14,7 @@ type AppConfig struct {
 	Metadata    MetadataConfig    `mapstructure:"metadata"`
 	Audit       AuditConfig       `mapstructure:"audit"`
 	FileManager FileManagerConfig `mapstructure:"fileManager"`
+	Monitor     MonitorConfig     `mapstructure:"monitor"`
 }
 
 // ServerConfig 服务器配置
@@ -68,6 +69,45 @@ type FileManagerConfig struct {
 	AllowedDirs           []string `mapstructure:"allowedDirs"`
 	RestrictToAllowedDirs bool     `mapstructure:"restrictToAllowedDirs"`
 	MaxDepth              int      `mapstructure:"maxDepth"`
+}
+
+// MonitorConfig 监控配置
+type MonitorConfig struct {
+	Enabled         bool                `mapstructure:"enabled"`
+	CollectInterval string              `mapstructure:"collectInterval"`
+	StoragePath     string              `mapstructure:"storagePath"`
+	DataRetention   DataRetentionConfig `mapstructure:"dataRetention"`
+	Alerts          AlertConfig         `mapstructure:"alerts"`
+	Protocols       ProtocolConfig      `mapstructure:"protocols"`
+}
+
+// DataRetentionConfig 数据保留配置
+type DataRetentionConfig struct {
+	RawData     string `mapstructure:"rawData"`
+	HourlyData  string `mapstructure:"hourlyData"`
+	DailyData   string `mapstructure:"dailyData"`
+	MonthlyData string `mapstructure:"monthlyData"`
+}
+
+// AlertConfig 告警配置
+type AlertConfig struct {
+	Enabled         bool `mapstructure:"enabled"`
+	CPUThreshold    int  `mapstructure:"cpuThreshold"`
+	MemoryThreshold int  `mapstructure:"memoryThreshold"`
+	DiskThreshold   int  `mapstructure:"diskThreshold"`
+}
+
+// ProtocolConfig 协议监控配置
+type ProtocolConfig struct {
+	ISCSI ProtocolServiceConfig `mapstructure:"iscsi"`
+	Samba ProtocolServiceConfig `mapstructure:"samba"`
+	NFS   ProtocolServiceConfig `mapstructure:"nfs"`
+}
+
+// ProtocolServiceConfig 协议服务配置
+type ProtocolServiceConfig struct {
+	Enabled    bool   `mapstructure:"enabled"`
+	ConfigPath string `mapstructure:"configPath"`
 }
 
 var Config *AppConfig
@@ -164,4 +204,42 @@ func GetFileManagerConfig() FileManagerConfig {
 		}
 	}
 	return Config.FileManager
+}
+
+// GetMonitorConfig 获取监控配置
+func GetMonitorConfig() MonitorConfig {
+	if Config == nil {
+		return MonitorConfig{
+			Enabled:         true,
+			CollectInterval: "15s",
+			StoragePath:     "data/monitor",
+			DataRetention: DataRetentionConfig{
+				RawData:     "7d",
+				HourlyData:  "30d",
+				DailyData:   "365d",
+				MonthlyData: "3y",
+			},
+			Alerts: AlertConfig{
+				Enabled:         true,
+				CPUThreshold:    80,
+				MemoryThreshold: 85,
+				DiskThreshold:   90,
+			},
+			Protocols: ProtocolConfig{
+				ISCSI: ProtocolServiceConfig{
+					Enabled:    true,
+					ConfigPath: "/etc/iscsi",
+				},
+				Samba: ProtocolServiceConfig{
+					Enabled:    true,
+					ConfigPath: "/etc/samba",
+				},
+				NFS: ProtocolServiceConfig{
+					Enabled:    true,
+					ConfigPath: "/etc/exports",
+				},
+			},
+		}
+	}
+	return Config.Monitor
 }

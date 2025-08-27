@@ -116,6 +116,9 @@ func startServer() {
 	// 设置文件管理路由
 	api.SetupFSRoutes(r)
 
+	// 设置监控路由
+	api.SetupMonitorRoutes(r, config.DB)
+
 	// 提供前端静态资源
 	r.Static("/web", "./web")
 

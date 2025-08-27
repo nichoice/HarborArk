@@ -30,7 +30,6 @@ type listResponse struct {
 // @Summary 列出目录
 // @Tags 文件管理
 // @Produce json
-// @Param path query string true "目录路径"
 // @Param offset query int false "偏移" default(0)
 // @Param limit query int false "数量" default(50)
 // @Param hidden query bool false "是否包含隐藏文件" default(false)
@@ -38,7 +37,8 @@ type listResponse struct {
 // @Security BearerAuth
 // @Router /fs/list [get]
 func (c *FSController) List(ctx *gin.Context) {
-	p := ctx.Query("path")
+	//p := ctx.Query("path")
+	p := config.GetFileManagerConfig().RootDir
 	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "50"))
 	includeHidden := ctx.DefaultQuery("hidden", "0") == "1" || ctx.DefaultQuery("hidden", "false") == "true"

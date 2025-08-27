@@ -3,6 +3,7 @@ package migration
 import (
 	"HarborArk/config"
 	"HarborArk/internal/model"
+	"HarborArk/internal/monitor"
 	"HarborArk/internal/service"
 	"HarborArk/internal/utils"
 
@@ -13,6 +14,11 @@ import (
 func AutoMigrate() error {
 	// 自动迁移表结构
 	if err := config.DB.AutoMigrate(&model.UserGroup{}, &model.User{}); err != nil {
+		return err
+	}
+
+	// 迁移监控相关表
+	if err := config.DB.AutoMigrate(&monitor.MetricRecord{}); err != nil {
 		return err
 	}
 

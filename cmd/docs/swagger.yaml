@@ -195,6 +195,184 @@ definitions:
           $ref: '#/definitions/model.User'
         type: array
     type: object
+  monitor.CPUMetrics:
+    properties:
+      cores:
+        description: CPU核心数
+        type: integer
+      load_avg_1:
+        description: 1分钟负载
+        type: number
+      load_avg_5:
+        description: 5分钟负载
+        type: number
+      load_avg_15:
+        description: 15分钟负载
+        type: number
+      timestamp:
+        type: string
+      usage:
+        description: CPU使用率 (%)
+        type: number
+    type: object
+  monitor.DiskIO:
+    properties:
+      read_bytes:
+        description: 读取字节数
+        type: integer
+      read_ops:
+        description: 读取操作数
+        type: integer
+      write_bytes:
+        description: 写入字节数
+        type: integer
+      write_ops:
+        description: 写入操作数
+        type: integer
+    type: object
+  monitor.DiskMetrics:
+    properties:
+      io:
+        allOf:
+        - $ref: '#/definitions/monitor.DiskIO'
+        description: 磁盘I/O统计
+      timestamp:
+        type: string
+      usage:
+        description: 磁盘使用情况
+        items:
+          $ref: '#/definitions/monitor.DiskUsage'
+        type: array
+    type: object
+  monitor.DiskUsage:
+    properties:
+      available:
+        description: 可用 (bytes)
+        type: integer
+      device:
+        description: 设备名
+        type: string
+      filesystem:
+        description: 文件系统类型
+        type: string
+      mountpoint:
+        description: 挂载点
+        type: string
+      total:
+        description: 总大小 (bytes)
+        type: integer
+      usage:
+        description: 使用率 (%)
+        type: number
+      used:
+        description: 已使用 (bytes)
+        type: integer
+    type: object
+  monitor.MemoryMetrics:
+    properties:
+      available:
+        description: 可用内存 (bytes)
+        type: integer
+      swap_total:
+        description: 交换分区总大小 (bytes)
+        type: integer
+      swap_used:
+        description: 交换分区已使用 (bytes)
+        type: integer
+      timestamp:
+        type: string
+      total:
+        description: 总内存 (bytes)
+        type: integer
+      usage:
+        description: 内存使用率 (%)
+        type: number
+      used:
+        description: 已使用内存 (bytes)
+        type: integer
+    type: object
+  monitor.MetricRecord:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      labels:
+        description: JSON格式存储标签
+        type: string
+      metric_name:
+        type: string
+      metric_type:
+        type: string
+      timestamp:
+        type: string
+      value:
+        type: number
+    type: object
+  monitor.NetworkInterface:
+    properties:
+      bytes_recv:
+        description: 接收字节数
+        type: integer
+      bytes_sent:
+        description: 发送字节数
+        type: integer
+      drops:
+        description: 丢包数
+        type: integer
+      errors:
+        description: 错误数
+        type: integer
+      name:
+        description: 接口名
+        type: string
+      packets_recv:
+        description: 接收包数
+        type: integer
+      packets_sent:
+        description: 发送包数
+        type: integer
+    type: object
+  monitor.NetworkMetrics:
+    properties:
+      interfaces:
+        items:
+          $ref: '#/definitions/monitor.NetworkInterface'
+        type: array
+      timestamp:
+        type: string
+    type: object
+  monitor.SystemMetrics:
+    properties:
+      cpu:
+        $ref: '#/definitions/monitor.CPUMetrics'
+      disk:
+        $ref: '#/definitions/monitor.DiskMetrics'
+      memory:
+        $ref: '#/definitions/monitor.MemoryMetrics'
+      network:
+        $ref: '#/definitions/monitor.NetworkMetrics'
+    type: object
+  service.CPUOverview:
+    properties:
+      cores:
+        type: integer
+      load_avg_1:
+        type: number
+      load_avg_5:
+        type: number
+      usage:
+        type: number
+    type: object
+  service.DiskOverview:
+    properties:
+      total:
+        type: integer
+      usage:
+        type: number
+      used:
+        type: integer
+    type: object
   service.FileItem:
     properties:
       is_dir:
@@ -238,6 +416,54 @@ definitions:
       updated_by:
         type: integer
       updated_by_name:
+        type: string
+    type: object
+  service.MemoryOverview:
+    properties:
+      available:
+        type: integer
+      total:
+        type: integer
+      usage:
+        type: number
+      used:
+        type: integer
+    type: object
+  service.NetworkOverview:
+    properties:
+      bytes_recv:
+        type: integer
+      bytes_sent:
+        type: integer
+    type: object
+  service.SystemOverview:
+    properties:
+      cpu:
+        $ref: '#/definitions/service.CPUOverview'
+      disk:
+        $ref: '#/definitions/service.DiskOverview'
+      memory:
+        $ref: '#/definitions/service.MemoryOverview'
+      network:
+        $ref: '#/definitions/service.NetworkOverview'
+      timestamp:
+        type: string
+    type: object
+  storage.AggregatedMetric:
+    properties:
+      avg_value:
+        type: number
+      count:
+        type: integer
+      max_value:
+        type: number
+      metric_name:
+        type: string
+      min_value:
+        type: number
+      time_bucket:
+        type: string
+      timestamp:
         type: string
     type: object
 info:
@@ -328,11 +554,6 @@ paths:
   /fs/list:
     get:
       parameters:
-      - description: 目录路径
-        in: query
-        name: path
-        required: true
-        type: string
       - default: 0
         description: 偏移
         in: query
@@ -458,6 +679,274 @@ paths:
       summary: 重命名或移动
       tags:
       - 文件管理
+  /monitor/aggregated:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定时间范围内的聚合指标数据
+      parameters:
+      - description: 指标类型
+        in: query
+        name: type
+        required: true
+        type: string
+      - default: 1h
+        description: 聚合间隔
+        in: query
+        name: interval
+        type: string
+      - description: 开始时间
+        format: date-time
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: 结束时间
+        format: date-time
+        in: query
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/storage.AggregatedMetric'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 获取聚合指标数据
+      tags:
+      - 监控
+  /monitor/health:
+    get:
+      consumes:
+      - application/json
+      description: 获取监控服务的运行状态和配置信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+      summary: 获取监控服务健康状态
+      tags:
+      - 监控
+  /monitor/latest:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定类型的最新指标数据
+      parameters:
+      - description: 指标类型
+        in: query
+        name: type
+        required: true
+        type: string
+      - default: 10
+        description: 限制数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/monitor.MetricRecord'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 获取最新指标数据
+      tags:
+      - 监控
+  /monitor/metrics/{type}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定类型和时间范围的指标数据
+      parameters:
+      - description: 指标类型
+        enum:
+        - cpu
+        - memory
+        - disk
+        - network
+        in: path
+        name: type
+        required: true
+        type: string
+      - default: 1h
+        description: 时间范围
+        in: query
+        name: range
+        type: string
+      - default: 100
+        description: 限制数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/monitor.MetricRecord'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 按类型获取指标数据
+      tags:
+      - 监控
+  /monitor/range:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定时间范围内的指标数据
+      parameters:
+      - description: 指标类型
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 指标名称
+        in: query
+        name: name
+        type: string
+      - description: 开始时间
+        format: date-time
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: 结束时间
+        format: date-time
+        in: query
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/monitor.MetricRecord'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 按时间范围获取指标
+      tags:
+      - 监控
+  /monitor/system/metrics:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定时间范围内的系统指标数据
+      parameters:
+      - default: 1h
+        description: 时间范围
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/monitor.SystemMetrics'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 获取系统指标数据
+      tags:
+      - 监控
+  /monitor/system/overview:
+    get:
+      consumes:
+      - application/json
+      description: 获取CPU、内存、磁盘、网络的概览信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.SystemOverview'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: 获取系统监控概览
+      tags:
+      - 监控
   /user-groups:
     get:
       consumes:

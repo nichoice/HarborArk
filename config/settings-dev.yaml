@@ -40,3 +40,28 @@ fileManager:
     - "/Users/nic/Desktop"
   restrictToAllowedDirs: true
   maxDepth: 10
+
+monitor:
+  enabled: true
+  collectInterval: "15s"
+  storagePath: "data/monitor"
+  dataRetention:
+    rawData: "7d"
+    hourlyData: "30d"
+    dailyData: "365d"
+    monthlyData: "3y"
+  alerts:
+    enabled: true
+    cpuThreshold: 80
+    memoryThreshold: 85
+    diskThreshold: 90
+  protocols:
+    iscsi:
+      enabled: true
+      configPath: "/etc/iscsi"
+    samba:
+      enabled: true
+      configPath: "/etc/samba"
+    nfs:
+      enabled: true
+      configPath: "/etc/exports"
